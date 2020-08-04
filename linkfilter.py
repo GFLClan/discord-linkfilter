@@ -36,7 +36,9 @@ class LinkFilter(commands.Cog):
 			if len(ctx.message.channel_mentions) > 0:
 				channel = ctx.message.channel_mentions[0]
 				await self.config.guild(ctx.guild).logchannel.set(channel.id)
+				# Start logging
 				await ctx.send("Set the `linkfilter`'s log channel to: " + channel.mention)
+				await ctx.guild.get_channel(channel.id).send("Started logging linkfilter in this channel.")
 			else:
 				await ctx.send("Please specify a channel to log linkfilter.")
 		# Adds to blacklist
@@ -46,7 +48,10 @@ class LinkFilter(commands.Cog):
 				async with self.config.blacklist() as blacklist:
 					blacklist.append(arg)
 				# Add to blacklist cache
-				self.blacklist.append(arg)	
+				self.blacklist.append(arg)
+
+				# Respond
+				await ctx.send(f"Added `{arg}` to the blacklisted domains.")
 		# Gets all blacklisted links
 		elif action == "list":
 			desc = ""
@@ -56,5 +61,14 @@ class LinkFilter(commands.Cog):
 
 			embed = discord.Embed(title="Blacklisted domains", description=desc, colour=ctx.author.colour)
 			await ctx.send(content=None, embed=embed)
+		# Removes from list
+		elif action == "remove":
+			for arg in args:
+				try:
+					self.blacklist.remove(arg)
+					await self.config.blacklist.set(self.blacklist)
+					await ctx.send(f"Removed `{arg}` from the blacklist.")
+				except ValueError:
+					await ctx.send(f"`{arg}` is not on the blacklist!")
 
 		#await ctx.send(await self.config.guild(ctx.guild).logchannel())
