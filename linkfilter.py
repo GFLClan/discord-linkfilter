@@ -1,22 +1,22 @@
 from redbot.core import commands
 from redbot.core import Config
-import logging
+from redbot.core import utils
 
-log = logging.getLogger("red.linkfilter.linkfilter")
 class LinkFilter(commands.Cog):
 	def __init__(self):
 		self.config = Config.get_conf(self, identifier=280102)
 		# Blacklist is shared between guilds
-		default_global = {
-			"blacklist": []
-		}
+		self.config.register_global(
+			blacklist = []
+		)
 		# The logs channel is defined per guild
-		default_guild = {
-			"logchannel": False
-		}
-		# Register default values
-		self.config.register_global(**default_global)
-		self.config.register_guild(**default_guild)
+		self.config.register_guild(
+			logchannel = False
+		)
+	
+	def on_ready(self):
+		# Cache blacklist
+		self.blacklist = await self.config.blacklist()
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
@@ -25,5 +25,23 @@ class LinkFilter(commands.Cog):
 			return
 
 	@commands.command()
-	async def test(self, ctx):
-		await ctx.send(await self.config.foo())
+	async def linkfilter(self, ctx, action, *args):
+		# Defines log channel
+		if action == "log":
+			if len(ctx.message.channel_mentions) > 0:
+				channel = ctx.message.channel_mentions[0]
+				await self.config.guild(ctx.guild).logchannel.set(channel.id)
+				await ctx.send("Set the `linkfilter`'s log channel to: " + channel.mention)
+			else:
+				await ctx.send("Please specify a channel to log linkfilter.")
+		# Adds to blacklist
+		elif action == "add":
+			for arg in args:
+				# Add to config
+				async with self.config.blacklist() as blacklist:
+					blacklist.append(arg)
+				# Add to blacklist cache
+				self.blacklist.append(arg)	
+		
+
+		#await ctx.send(await self.config.guild(ctx.guild).logchannel())
