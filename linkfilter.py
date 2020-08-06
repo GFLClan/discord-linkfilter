@@ -36,13 +36,18 @@ class LinkFilter(commands.Cog):
 			if len(ctx.message.channel_mentions) > 0:
 				channel = ctx.message.channel_mentions[0]
 				await self.config.guild(ctx.guild).logchannel.set(channel.id)
+				# Respond
+				await ctx.send(f"Set linkfilter's log channel to {channel.mention}")
 				# Start logging
-				await ctx.send("Set the `linkfilter`'s log channel to: " + channel.mention)
-				await ctx.guild.get_channel(channel.id).send("Started logging linkfilter in this channel.")
+				time = ctx.message.created_at
+				# Log
+				await ctx.guild.get_channel(channel.id).send(f"[`{time.hour}:{time.minute}:{time.second}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) set linkfilter's log channel to {channel.mention}.")
 			else:
 				await ctx.send("Please specify a channel to log linkfilter.")
 		# Adds to blacklist
 		elif action == "add":
+			logchannel = await self.config.guild(ctx.guild).logchannel()
+
 			for arg in args:
 				# Add to config
 				async with self.config.blacklist() as blacklist:
@@ -52,6 +57,10 @@ class LinkFilter(commands.Cog):
 
 				# Respond
 				await ctx.send(f"Added `{arg}` to the blacklisted domains.")
+
+				# Log
+				time = ctx.message.created_at
+				await ctx.guild.get_channel(logchannel).send(f"[`{time.hour}:{time.minute}:{time.second}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) added `{arg}` to the blacklisted domains.")
 		# Gets all blacklisted links
 		elif action == "list":
 			desc = ""
