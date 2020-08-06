@@ -22,7 +22,7 @@ class LinkFilter(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		# Stop recursion or private messages stuff
+		# Stop recursion, private message checking and people with perms
 		if message.author.bot or not message.guild:
 			return
 		# Cache blacklist
@@ -54,6 +54,7 @@ class LinkFilter(commands.Cog):
 					break
 		
 	@commands.command()
+	@commands.has_guild_permissions(manage_messages=True)
 	@commands.guild_only()
 	async def linkfilter(self, ctx, action, *args):
 		# Cache blacklist
