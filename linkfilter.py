@@ -55,7 +55,7 @@ class LinkFilter(commands.Cog):
 					break
 		
 	@commands.command()
-	#@commands.has_guild_permissions(manage_messages=True)
+	@commands.has_guild_permissions(manage_messages=True)
 	@commands.guild_only()
 	async def linkfilter(self, ctx, action, *args):
 		# Defines log channel
