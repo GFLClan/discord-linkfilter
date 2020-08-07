@@ -18,22 +18,24 @@ class LinkFilter(commands.Cog):
 			logchannel = False
 		)
 		# Dummy blacklist
-		self.blacklist = False
+		self.blacklist = []
+
+	# Load blacklist
+	async def initialize(self):
+		self.blacklist = await self.config.blacklist()
+
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
 		# Stop recursion, private message checking and people with perms
 		if message.author.bot or not message.guild:
 			return
-		# Cache blacklist
-		if not self.blacklist:
-			self.blacklist = await self.config.blacklist()
 		# Try to match a blacklisted domain
 		result = re.search(self.Re, message.content, re.MULTILINE | re.VERBOSE)
 		# Now try to find a blacklisted domain
 		if result:
 			for domain in self.blacklist:
-				if domain == result.group(0):
+				if domain in result.group(0):
 					# Remove the message
 					try:
 						await message.delete()
@@ -57,9 +59,6 @@ class LinkFilter(commands.Cog):
 	@commands.has_guild_permissions(manage_messages=True)
 	@commands.guild_only()
 	async def linkfilter(self, ctx, action, *args):
-		# Cache blacklist
-		if not self.blacklist:
-			self.blacklist = await self.config.blacklist()
 		# Defines log channel
 		if action == "log":
 			if len(ctx.message.channel_mentions) > 0:

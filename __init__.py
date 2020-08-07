@@ -1,4 +1,6 @@
 from .linkfilter import LinkFilter
 
-def setup(bot):
-	bot.add_cog(LinkFilter())
+async def setup(bot):
+	cog = LinkFilter()
+	await cog.initialize()
+	bot.add_cog(cog)
