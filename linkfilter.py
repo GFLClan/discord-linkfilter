@@ -27,7 +27,7 @@ class LinkFilter(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_message(self, message):
-		# Stop recursion, private message checking and people with perms
+		# Stop recursion, private message checking
 		if message.author.bot or not message.guild:
 			return
 		# Try to match a blacklisted domain
@@ -81,15 +81,13 @@ class LinkFilter(commands.Cog):
 					await ctx.send(f"`{arg}` is already on the blacklist!")
 				# Validate
 				elif re.match(self.Re, arg):
+					# Add to blacklist cache
+					self.blacklist.append(arg)
 					# Add to config
 					async with self.config.blacklist() as blacklist:
 						blacklist.append(arg)
-					# Add to blacklist cache
-					self.blacklist.append(arg)
-
 					# Respond
 					await ctx.send(f"Added `{arg}` to the blacklisted domains.")
-
 					# Log
 					if channel:
 						await channel.send(f"[`{ctx.message.created_at.strftime('%H:%M:%S')}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) added `{arg}` to the blacklisted domains.")
