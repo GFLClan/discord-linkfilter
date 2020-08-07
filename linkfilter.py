@@ -31,7 +31,7 @@ class LinkFilter(commands.Cog):
 		if message.author.bot or not message.guild:
 			return
 		# Try to match a blacklisted domain
-		result = re.search(self.Re, message.content, re.MULTILINE | re.VERBOSE)
+		result = re.search(self.Re, message.content.lower(), re.MULTILINE | re.VERBOSE)
 		# Now try to find a blacklisted domain
 		if result:
 			for domain in self.blacklist:
@@ -50,13 +50,12 @@ class LinkFilter(commands.Cog):
 					logchannel = await self.config.guild(message.guild).logchannel()
 					channel = message.guild.get_channel(logchannel)
 					if channel:
-						time = message.created_at
-						await channel.send(f"[`{time.hour}:{time.minute}:{time.second}`] :wastebasket: {str(message.author)} (`{message.author.id}`) posted a blacklisted domain!\n**Match**: `{result.group(0)}`\n**Message**: {message.content}")
+						await channel.send(f"[`{message.created_at.strftime('%H:%M:%S')}`] :wastebasket: {str(message.author)} (`{message.author.id}`) posted a blacklisted domain!\n**Match**: `{result.group(0)}`\n**Message**: {message.content}")
 					# Stop looking for domains
 					break
 		
 	@commands.command()
-	@commands.has_guild_permissions(manage_messages=True)
+	#@commands.has_guild_permissions(manage_messages=True)
 	@commands.guild_only()
 	async def linkfilter(self, ctx, action, *args):
 		# Defines log channel
@@ -66,10 +65,8 @@ class LinkFilter(commands.Cog):
 				await self.config.guild(ctx.guild).logchannel.set(channel.id)
 				# Respond
 				await ctx.send(f"Set linkfilter's log channel to {channel.mention}")
-				# Start logging
-				time = ctx.message.created_at
 				# Log
-				await ctx.guild.get_channel(channel.id).send(f"[`{time.hour}:{time.minute}:{time.second}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) set linkfilter's log channel to {channel.mention}.")
+				await ctx.guild.get_channel(channel.id).send(f"[`{ctx.message.created_at.strftime('%H:%M:%S')}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) set linkfilter's log channel to {channel.mention}.")
 			else:
 				await ctx.send("Please specify a channel to log linkfilter.")
 		# Adds to blacklist
@@ -95,8 +92,7 @@ class LinkFilter(commands.Cog):
 
 					# Log
 					if channel:
-						time = ctx.message.created_at
-						await channel.send(f"[`{time.hour}:{time.minute}:{time.second}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) added `{arg}` to the blacklisted domains.")
+						await channel.send(f"[`{ctx.message.created_at.strftime('%H:%M:%S')}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) added `{arg}` to the blacklisted domains.")
 				else:
 					await ctx.send(f"I couldn't validate that domain. My regex is set to `{self.Re}`")
 		# Gets all blacklisted links
@@ -124,7 +120,6 @@ class LinkFilter(commands.Cog):
 					await ctx.send(f"Removed `{arg}` from the blacklist.")
 					# Log
 					if channel:
-						time = ctx.message.created_at
-						await channel.send(f"[`{time.hour}:{time.minute}:{time.second}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) removed `{arg}` from the blacklisted domains.")
+						await channel.send(f"[`{ctx.message.created_at.strftime('%H:%M:%S')}`] :pencil: {str(ctx.author)} (`{ctx.author.id}`) removed `{arg}` from the blacklisted domains.")
 				except ValueError:
 					await ctx.send(f"`{arg}` is not on the blacklist!")
